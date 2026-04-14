@@ -1,0 +1,27 @@
+import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
+import { openApiRegistry } from './openapi-registry';
+import '../modules/auth/auth.openapi';
+
+const generator = new OpenApiGeneratorV31(openApiRegistry.definitions, {
+  sortComponents: 'alphabetically',
+});
+
+export const swaggerSpec = generator.generateDocument({
+  openapi: '3.1.1',
+  info: {
+    title: 'Booking Express API',
+    version: '1.0.0',
+    description: 'API documentation for the Booking Express service',
+  },
+  servers: [
+    {
+      url: 'http://localhost:3000',
+    },
+  ],
+  tags: [
+    {
+      name: 'Auth',
+      description: 'Authentication and session management endpoints',
+    },
+  ],
+});
