@@ -1,13 +1,13 @@
 import bcrypt from 'bcrypt';
 import { LoginBody, RegisterBody } from './auth.schemas';
-import { SessionEntity, UserEntity } from './auth.entities';
+import { AuthSession, AuthUser } from './auth.types';
 import { ApiError } from '../../utils/api-error';
 import { generateTokenId, sha256 } from '../../utils/crypto';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { authRepository } from './auth.repository';
 import { AuthResponse, PublicUser } from './auth.contracts';
 
-const toPublicUser = (user: UserEntity): PublicUser => ({
+const toPublicUser = (user: AuthUser): PublicUser => ({
   id: user.id,
   email: user.email,
 });
@@ -29,12 +29,12 @@ export const authService = {
       throw ApiError.conflict('User with this email already exists');
     }
 
-    const passwordHash = await bcrypt.hash(body.password, 12);
+    const password = await bcrypt.hash(body.password, 12);
 
-    const user: UserEntity = {
+    const user: AuthUser = {
       id: crypto.randomUUID(),
       email: body.email,
-      passwordHash,
+      password,
       createdAt: new Date(),
     };
 
@@ -54,7 +54,7 @@ export const authService = {
       type: 'access',
     });
 
-    const session: SessionEntity = {
+    const session: AuthSession = {
       id: sessionId,
       userId: user.id,
       refreshTokenHash: sha256(refreshToken),
@@ -84,7 +84,7 @@ export const authService = {
       throw ApiError.unauthorized('Invalid email or password');
     }
 
-    const isPasswordValid = await bcrypt.compare(body.password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
     if (!isPasswordValid) {
       throw ApiError.unauthorized('Invalid email or password');
@@ -104,7 +104,7 @@ export const authService = {
       type: 'access',
     });
 
-    const session: SessionEntity = {
+    const session: AuthSession = {
       id: sessionId,
       userId: user.id,
       refreshTokenHash: sha256(refreshToken),

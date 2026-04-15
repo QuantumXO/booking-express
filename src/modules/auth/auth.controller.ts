@@ -12,7 +12,7 @@ const refreshCookieOptions = {
 };
 
 export const authController = {
-  async register(req: Request, res: Response) {
+  async register(req: Request, res: Response): Promise<void> {
     const result = await authService.register(req.body, {
       userAgent: req.get('user-agent'),
       ip: req.ip,
@@ -20,13 +20,13 @@ export const authController = {
 
     res.cookie(env.refreshCookieName, result.refreshToken, refreshCookieOptions);
 
-    return res.status(201).json({
+    res.status(201).json({
       user: result.user,
       accessToken: result.accessToken,
     });
   },
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response): Promise<void> {
     const result = await authService.login(req.body, {
       userAgent: req.get('user-agent'),
       ip: req.ip,
@@ -34,29 +34,30 @@ export const authController = {
 
     res.cookie(env.refreshCookieName, result.refreshToken, refreshCookieOptions);
 
-    return res.status(200).json({
+    res.status(200).json({
       user: result.user,
       accessToken: result.accessToken,
     });
   },
 
-  async refresh(req: Request, res: Response) {
+  async refresh(req: Request, res: Response): Promise<void> {
     const refreshToken = req.cookies?.[env.refreshCookieName];
 
     if (!refreshToken) {
-      return res.status(401).json({ message: 'Missing refresh token' });
+      res.status(401).json({ message: 'Missing refresh token' });
+      return;
     }
 
     const result = await authService.refresh(refreshToken);
 
     res.cookie(env.refreshCookieName, result.refreshToken, refreshCookieOptions);
 
-    return res.status(200).json({
+    res.status(200).json({
       accessToken: result.accessToken,
     });
   },
 
-  async logout(req: Request, res: Response) {
+  async logout(req: Request, res: Response): Promise<void> {
     const refreshToken = req.cookies?.[env.refreshCookieName];
 
     if (refreshToken) {
@@ -67,15 +68,15 @@ export const authController = {
       path: '/auth/refresh',
     });
 
-    return res.status(204).send();
+    res.status(204).send();
   },
 
-  async me(req: AuthenticatedRequest, res: Response) {
+  async me(req: AuthenticatedRequest, res: Response): Promise<void> {
     if (!req.user) {
       throw ApiError.unauthorized('Missing bearer token');
     }
 
     const user = await authService.me(req.user.sub);
-    return res.status(200).json(user);
+    res.status(200).json(user);
   },
 };

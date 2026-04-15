@@ -1,11 +1,11 @@
-export type UserEntity = {
+export type AuthUser = {
   id: string;
   email: string;
-  passwordHash: string;
+  password: string;
   createdAt: Date;
 };
 
-export type SessionEntity = {
+export type AuthSession = {
   id: string;
   userId: string;
   refreshTokenHash: string;

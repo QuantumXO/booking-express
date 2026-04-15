@@ -2,11 +2,8 @@ import express, { Express } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './docs/swagger';
 import authRouter from './modules/auth/auth.routes';
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { errorMiddleware } from './middlewares/error.middleware';
-
-dotenv.config();
 
 export function createApp(): Express {
   const app: Express = express();

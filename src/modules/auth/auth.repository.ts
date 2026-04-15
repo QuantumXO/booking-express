@@ -1,56 +1,93 @@
-import { SessionEntity, UserEntity } from './auth.entities';
+import { AuthSession, AuthUser } from './auth.types';
+import { SessionDocument, SessionModel, UserDocument, UserModel } from './auth.models';
 
-const users = new Map<string, UserEntity>();
-const sessions = new Map<string, SessionEntity>();
+const toAuthUser = (user: UserDocument): AuthUser => ({
+  id: user._id,
+  email: user.email,
+  password: user.password,
+  createdAt: user.createdAt,
+});
+
+const toAuthSession = (session: SessionDocument): AuthSession => ({
+  id: session._id,
+  userId: session.userId,
+  refreshTokenHash: session.refreshTokenHash,
+  userAgent: session.userAgent ?? undefined,
+  ip: session.ip ?? undefined,
+  expiresAt: session.expiresAt,
+  createdAt: session.createdAt,
+  revokedAt: session.revokedAt ?? null,
+});
 
 export const authRepository = {
-  async findUserByEmail(email: string): Promise<UserEntity | null> {
-    for (const user of users.values()) {
-      if (user.email === email) return user;
-    }
-    return null;
+  async findUserByEmail(email: string): Promise<AuthUser | null> {
+    const user = await UserModel.findOne({ email }).lean();
+
+    return user ? toAuthUser(user) : null;
   },
 
-  async findUserById(id: string): Promise<UserEntity | null> {
-    return users.get(id) ?? null;
+  async findUserById(id: string): Promise<AuthUser | null> {
+    const user = await UserModel.findById(id).lean();
+
+    return user ? toAuthUser(user) : null;
   },
 
-  async createUser(user: UserEntity): Promise<UserEntity> {
-    users.set(user.id, user);
+  async createUser(user: AuthUser): Promise<AuthUser> {
+    await UserModel.create({
+      _id: user.id,
+      email: user.email,
+      password: user.password,
+      createdAt: user.createdAt,
+    });
+
     return user;
   },
 
-  async createSession(session: SessionEntity): Promise<SessionEntity> {
-    sessions.set(session.id, session);
+  async createSession(session: AuthSession): Promise<AuthSession> {
+    await SessionModel.create({
+      _id: session.id,
+      userId: session.userId,
+      refreshTokenHash: session.refreshTokenHash,
+      userAgent: session.userAgent,
+      ip: session.ip,
+      expiresAt: session.expiresAt,
+      createdAt: session.createdAt,
+      revokedAt: session.revokedAt,
+    });
+
     return session;
   },
 
-  async findSessionById(id: string): Promise<SessionEntity | null> {
-    return sessions.get(id) ?? null;
+  async findSessionById(id: string): Promise<AuthSession | null> {
+    const session = await SessionModel.findById(id).lean();
+
+    return session ? toAuthSession(session) : null;
   },
 
   async revokeSession(id: string): Promise<void> {
-    const session = sessions.get(id);
-    if (!session) return;
-    session.revokedAt = new Date();
-    sessions.set(id, session);
+    await SessionModel.updateOne({ _id: id }, { $set: { revokedAt: new Date() } });
   },
 
   async rotateSessionRefreshToken(id: string, refreshTokenHash: string, expiresAt: Date): Promise<void> {
-    const session = sessions.get(id);
-    if (!session) return;
-
-    session.refreshTokenHash = refreshTokenHash;
-    session.expiresAt = expiresAt;
-    sessions.set(id, session);
+    await SessionModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          refreshTokenHash,
+          expiresAt,
+        },
+      },
+    );
   },
 
   async revokeAllUserSessions(userId: string): Promise<void> {
-    for (const session of sessions.values()) {
-      if (session.userId === userId && !session.revokedAt) {
-        session.revokedAt = new Date();
-        sessions.set(session.id, session);
-      }
-    }
+    await SessionModel.updateMany(
+      { userId, revokedAt: null },
+      {
+        $set: {
+          revokedAt: new Date(),
+        },
+      },
+    );
   },
 };
