@@ -4,10 +4,12 @@ import { swaggerSpec } from './docs/swagger';
 import authRouter from './modules/auth/auth.routes';
 import cookieParser from 'cookie-parser';
 import { errorMiddleware } from './middlewares/error.middleware';
+import { httpLogger } from './middlewares/http-logger.middleware';
 
 export function createApp(): Express {
   const app: Express = express();
 
+  app.use(httpLogger);
   app.use(express.json());
   app.use(cookieParser());
 
