@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { ApiError } from '../utils/api-error';
 import { verifyAccessToken } from '../utils/jwt';
-import type { AuthenticatedRequest } from '../modules/auth/auth.request-types';
+import type { AuthenticatedRequest } from '../modules/auth/auth.request.types';
 
 export const requireAuth = (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;

@@ -1,13 +1,13 @@
 import bcrypt from 'bcrypt';
-import { LoginBody, RegisterBody } from './auth.schemas';
+import { LoginDto, RegisterDto } from './auth.validation';
 import { AuthSession, AuthUser } from './auth.types';
 import { ApiError } from '../../utils/api-error';
 import { generateTokenId, sha256 } from '../../utils/crypto';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { authRepository } from './auth.repository';
-import { AuthResponse, PublicUser } from './auth.contracts';
+import { AccessTokenResponseDto, AuthResponseDto, PublicUserDto } from './auth.dto';
 
-const toPublicUser = (user: AuthUser): PublicUser => ({
+const toPublicUserDto = (user: AuthUser): PublicUserDto => ({
   id: user.id,
   email: user.email,
 });
@@ -20,9 +20,9 @@ const getRefreshExpiryDate = (): Date => {
 
 export const authService = {
   async register(
-    body: RegisterBody,
+    body: RegisterDto,
     meta?: { userAgent?: string; ip?: string },
-  ): Promise<AuthResponse & { refreshToken: string }> {
+  ): Promise<AuthResponseDto & { refreshToken: string }> {
     const existingUser = await authRepository.findUserByEmail(body.email);
 
     if (existingUser) {
@@ -68,16 +68,16 @@ export const authService = {
     await authRepository.createSession(session);
 
     return {
-      user: toPublicUser(user),
+      user: toPublicUserDto(user),
       accessToken,
       refreshToken,
     };
   },
 
   async login(
-    body: LoginBody,
+    body: LoginDto,
     meta?: { userAgent?: string; ip?: string },
-  ): Promise<AuthResponse & { refreshToken: string }> {
+  ): Promise<AuthResponseDto & { refreshToken: string }> {
     const user = await authRepository.findUserByEmail(body.email);
 
     if (!user) {
@@ -118,13 +118,13 @@ export const authService = {
     await authRepository.createSession(session);
 
     return {
-      user: toPublicUser(user),
+      user: toPublicUserDto(user),
       accessToken,
       refreshToken,
     };
   },
 
-  async refresh(rawRefreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async refresh(rawRefreshToken: string): Promise<AccessTokenResponseDto & { refreshToken: string }> {
     let payload: ReturnType<typeof verifyRefreshToken>;
 
     try {
@@ -192,13 +192,13 @@ export const authService = {
     await authRepository.revokeSession(payload.sid);
   },
 
-  async me(userId: string): Promise<PublicUser> {
+  async me(userId: string): Promise<PublicUserDto> {
     const user = await authRepository.findUserById(userId);
 
     if (!user) {
       throw ApiError.notFound('User not found');
     }
 
-    return toPublicUser(user);
+    return toPublicUserDto(user);
   },
 };

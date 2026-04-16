@@ -1,6 +1,3 @@
-import express, { Express } from 'express';
-import { httpLogger } from './http-logger.middleware';
-import cookieParser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
 
 const allowedOrigins = ['http://localhost'];

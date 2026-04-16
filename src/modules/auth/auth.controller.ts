@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { env } from '../../config/env';
 import { authService } from './auth.service';
 import { ApiError } from '../../utils/api-error';
-import type { AuthenticatedRequest } from './auth.request-types';
+import type { AuthenticatedRequest } from './auth.request.types';
 
 const refreshCookieOptions = {
   httpOnly: true,

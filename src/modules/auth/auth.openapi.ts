@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { openApiRegistry } from '../../docs/openapi-registry';
-import { loginSchema, registerSchema } from './auth.schemas';
+import { loginSchema, registerSchema } from './auth.validation';
 
 const refreshCookieExample =
   'refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh.payload.signature; Path=/auth/refresh; HttpOnly; SameSite=Lax';
@@ -18,7 +18,7 @@ openApiRegistry.registerComponent('securitySchemes', 'refreshTokenCookie', {
 });
 
 const PublicUserSchema = openApiRegistry.register(
-  'PublicUser',
+  'PublicUserDto',
   z.object({
     id: z.string().uuid().meta({
       example: '0f7fd8de-b2c3-4cc9-9a2a-f09f1d3ef2ef',
@@ -29,11 +29,11 @@ const PublicUserSchema = openApiRegistry.register(
   })
 );
 
-const RegisterRequestSchema = openApiRegistry.register('RegisterRequest', registerSchema);
-const LoginRequestSchema = openApiRegistry.register('LoginRequest', loginSchema);
+const RegisterDtoSchema = openApiRegistry.register('RegisterDto', registerSchema);
+const LoginDtoSchema = openApiRegistry.register('LoginDto', loginSchema);
 
-const AuthResponseSchema = openApiRegistry.register(
-  'AuthResponse',
+const AuthResponseDtoSchema = openApiRegistry.register(
+  'AuthResponseDto',
   z.object({
     user: PublicUserSchema,
     accessToken: z.string().meta({
@@ -42,8 +42,8 @@ const AuthResponseSchema = openApiRegistry.register(
   })
 );
 
-const AccessTokenResponseSchema = openApiRegistry.register(
-  'AccessTokenResponse',
+const AccessTokenResponseDtoSchema = openApiRegistry.register(
+  'AccessTokenResponseDto',
   z.object({
     accessToken: z.string().meta({
       example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.access.payload.signature',
@@ -91,7 +91,7 @@ openApiRegistry.registerPath({
       required: true,
       content: {
         'application/json': {
-          schema: RegisterRequestSchema,
+          schema: RegisterDtoSchema,
           example: {
             email: '',
             password: '',
@@ -108,7 +108,7 @@ openApiRegistry.registerPath({
       },
       content: {
         'application/json': {
-          schema: AuthResponseSchema,
+          schema: AuthResponseDtoSchema,
         },
       },
     },
@@ -141,7 +141,7 @@ openApiRegistry.registerPath({
       required: true,
       content: {
         'application/json': {
-          schema: LoginRequestSchema,
+          schema: LoginDtoSchema,
           example: {
             email: '',
             password: '',
@@ -158,7 +158,7 @@ openApiRegistry.registerPath({
       },
       content: {
         'application/json': {
-          schema: AuthResponseSchema,
+          schema: AuthResponseDtoSchema,
         },
       },
     },
@@ -207,7 +207,7 @@ openApiRegistry.registerPath({
       },
       content: {
         'application/json': {
-          schema: AccessTokenResponseSchema,
+          schema: AccessTokenResponseDtoSchema,
         },
       },
     },

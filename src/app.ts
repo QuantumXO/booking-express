@@ -4,13 +4,14 @@ import { swaggerSpec } from './docs/swagger';
 import authRouter from './modules/auth/auth.routes';
 import cookieParser from 'cookie-parser';
 import { errorMiddleware } from './middlewares/error.middleware';
-import { httpLogger } from './middlewares/http-logger.middleware';
 import { corsMiddleware } from './middlewares/cors.middleware';
+import pinoHttp from 'pino-http';
+import { logger } from './utils/logger';
 
 export function createApp(): Express {
   const app: Express = express();
 
-  app.use(httpLogger);
+  app.use(pinoHttp({ logger }));
   app.use(express.json());
   app.use(cookieParser());
   app.use(corsMiddleware);
