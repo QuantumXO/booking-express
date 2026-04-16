@@ -5,6 +5,7 @@ import authRouter from './modules/auth/auth.routes';
 import cookieParser from 'cookie-parser';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { httpLogger } from './middlewares/http-logger.middleware';
+import { corsMiddleware } from './middlewares/cors.middleware';
 
 export function createApp(): Express {
   const app: Express = express();
@@ -12,6 +13,7 @@ export function createApp(): Express {
   app.use(httpLogger);
   app.use(express.json());
   app.use(cookieParser());
+  app.use(corsMiddleware);
 
   app.get('/', (req, res) => {
     res.status(200).json({ message: 'Hello TS Express' });
