@@ -1,7 +1,4 @@
-export type PublicUserDto = {
-  id: string;
-  email: string;
-};
+import { PublicUserDto } from '../users/users.dto';
 
 export type AuthResponseDto = {
   user: PublicUserDto;

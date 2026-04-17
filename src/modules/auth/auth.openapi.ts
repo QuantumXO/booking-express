@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { openApiRegistry } from '../../docs/openapi-registry';
 import { loginSchema, registerSchema } from './auth.validation';
+import { PublicUserSchema } from '../users/users.openapi';
 
 const refreshCookieExample =
   'refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh.payload.signature; Path=/auth/refresh; HttpOnly; SameSite=Lax';
@@ -16,18 +17,6 @@ openApiRegistry.registerComponent('securitySchemes', 'refreshTokenCookie', {
   in: 'cookie',
   name: 'refreshToken',
 });
-
-const PublicUserSchema = openApiRegistry.register(
-  'PublicUserDto',
-  z.object({
-    id: z.string().uuid().meta({
-      example: '0f7fd8de-b2c3-4cc9-9a2a-f09f1d3ef2ef',
-    }),
-    email: z.string().email().meta({
-      example: 'john@example.com',
-    }),
-  })
-);
 
 const RegisterDtoSchema = openApiRegistry.register('RegisterDto', registerSchema);
 const LoginDtoSchema = openApiRegistry.register('LoginDto', loginSchema);
@@ -242,51 +231,6 @@ openApiRegistry.registerPath({
   responses: {
     '204': {
       description: '',
-    },
-  },
-});
-
-openApiRegistry.registerPath({
-  method: 'get',
-  path: '/auth/me',
-  tags: ['Auth'],
-  operationId: 'getCurrentUser',
-  security: [{ bearerAuth: [] }],
-  parameters: [
-    {
-      name: 'Authorization',
-      in: 'header',
-      required: true,
-      schema: {
-        type: 'string',
-        example: '',
-      },
-    },
-  ],
-  responses: {
-    '200': {
-      description: '',
-      content: {
-        'application/json': {
-          schema: PublicUserSchema,
-        },
-      },
-    },
-    '401': {
-      description: '',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-    },
-    '404': {
-      description: '',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
     },
   },
 });

@@ -24,7 +24,7 @@ async function bootstrap(): Promise<void> {
     const app: Express = createApp();
 
     const server = app.listen(env.port, () => {
-      logger.info(`Server running on http://localhost:${env.port}`);
+      console.log(`Server running on http://localhost:${env.port}`);
     });
 
     const shutdown = async () => {

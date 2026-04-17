@@ -11,6 +11,9 @@ export async function connectMongo(): Promise<typeof mongoose> {
   await mongoose.connect(env.mongodbUri, { dbName: env.mongodbDbName });
 
   isConnected = true;
+
+  console.log(`MongoDB connected successfully.`);
+
   return mongoose;
 }
 

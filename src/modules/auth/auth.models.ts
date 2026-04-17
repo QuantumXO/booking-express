@@ -1,17 +1,5 @@
 import { InferSchemaType, Schema, model, models } from 'mongoose';
 
-const userSchema = new Schema(
-  {
-    _id: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true },
-    password: { type: String, required: true },
-    createdAt: { type: Date, required: true },
-  },
-  {
-    versionKey: false,
-  },
-);
-
 const sessionSchema = new Schema(
   {
     _id: { type: String, required: true },
@@ -28,8 +16,6 @@ const sessionSchema = new Schema(
   },
 );
 
-export type UserDocument = InferSchemaType<typeof userSchema>;
 export type SessionDocument = InferSchemaType<typeof sessionSchema>;
 
-export const UserModel = models.User || model<UserDocument>('User', userSchema, 'users');
 export const SessionModel = models.Session || model<SessionDocument>('Session', sessionSchema, 'sessions');

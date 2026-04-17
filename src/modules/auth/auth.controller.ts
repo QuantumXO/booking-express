@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { env } from '../../config/env';
 import { authService } from './auth.service';
-import { ApiError } from '../../utils/api-error';
-import type { AuthenticatedRequest } from './auth.request.types';
 
 const refreshCookieOptions = {
   httpOnly: true,
@@ -69,14 +67,5 @@ export const authController = {
     });
 
     res.status(204).send();
-  },
-
-  async me(req: AuthenticatedRequest, res: Response): Promise<void> {
-    if (!req.user) {
-      throw ApiError.unauthorized('Missing bearer token');
-    }
-
-    const user = await authService.me(req.user.sub);
-    res.status(200).json(user);
   },
 };

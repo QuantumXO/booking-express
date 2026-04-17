@@ -4,6 +4,7 @@ export const env = {
   port: Number(process.env.PORT ?? 3000),
   mongodbUri: process.env.MONGODB_URI ?? '',
   mongodbDbName: process.env.MONGODB_DB_NAME ?? 'booking_express',
+  httpLogsEnabled: process.env.HTTP_LOGS_ENABLED === 'true',
 
   // JWT
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? 'access-secret-dev',

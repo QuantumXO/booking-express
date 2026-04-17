@@ -1,17 +1,25 @@
 import express, { Express } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './docs/swagger';
-import authRouter from './modules/auth/auth.routes';
+import { authRouter } from './modules/auth/auth.router';
+import { slotsRouter } from './modules/slots/slots.router';
+import { usersRouter } from './modules/users/users.router';
 import cookieParser from 'cookie-parser';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { corsMiddleware } from './middlewares/cors.middleware';
 import pinoHttp from 'pino-http';
 import { logger } from './utils/logger';
+import { env } from './config/env';
 
 export function createApp(): Express {
   const app: Express = express();
 
-  app.use(pinoHttp({ logger }));
+  app.use(
+    pinoHttp({
+      logger,
+      autoLogging: env.httpLogsEnabled,
+    }),
+  );
   app.use(express.json());
   app.use(cookieParser());
   app.use(corsMiddleware);
@@ -26,6 +34,8 @@ export function createApp(): Express {
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.use('/auth', authRouter);
+  app.use('/users', usersRouter);
+  app.use('/slots', slotsRouter);
 
   app.all('/{*splat}', (req, res) => {
     res.status(404).json({ message: 'Route not found' });

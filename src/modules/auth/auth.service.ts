@@ -1,16 +1,14 @@
 import bcrypt from 'bcrypt';
 import { LoginDto, RegisterDto } from './auth.validation';
-import { AuthSession, AuthUser } from './auth.types';
+import { AuthSession } from './auth.types';
 import { ApiError } from '../../utils/api-error';
 import { generateTokenId, sha256 } from '../../utils/crypto';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { authRepository } from './auth.repository';
-import { AccessTokenResponseDto, AuthResponseDto, PublicUserDto } from './auth.dto';
-
-const toPublicUserDto = (user: AuthUser): PublicUserDto => ({
-  id: user.id,
-  email: user.email,
-});
+import { AccessTokenResponseDto, AuthResponseDto } from './auth.dto';
+import { toPublicUserDto } from '../users/users.dto';
+import { usersRepository } from '../users/users.repository';
+import { NewUser } from '../users/users.types';
 
 const getRefreshExpiryDate = (): Date => {
   const expiresAt = new Date();
@@ -23,7 +21,7 @@ export const authService = {
     body: RegisterDto,
     meta?: { userAgent?: string; ip?: string },
   ): Promise<AuthResponseDto & { refreshToken: string }> {
-    const existingUser = await authRepository.findUserByEmail(body.email);
+    const existingUser = await usersRepository.findByEmail(body.email);
 
     if (existingUser) {
       throw ApiError.conflict('User with this email already exists');
@@ -31,14 +29,13 @@ export const authService = {
 
     const password = await bcrypt.hash(body.password, 12);
 
-    const user: AuthUser = {
+    const user: NewUser = {
       id: crypto.randomUUID(),
       email: body.email,
       password,
-      createdAt: new Date(),
     };
 
-    await authRepository.createUser(user);
+    const createdUser = await usersRepository.create(user);
 
     const sessionId = generateTokenId();
 
@@ -68,7 +65,7 @@ export const authService = {
     await authRepository.createSession(session);
 
     return {
-      user: toPublicUserDto(user),
+      user: toPublicUserDto(createdUser),
       accessToken,
       refreshToken,
     };
@@ -78,7 +75,7 @@ export const authService = {
     body: LoginDto,
     meta?: { userAgent?: string; ip?: string },
   ): Promise<AuthResponseDto & { refreshToken: string }> {
-    const user = await authRepository.findUserByEmail(body.email);
+    const user = await usersRepository.findByEmail(body.email);
 
     if (!user) {
       throw ApiError.unauthorized('Invalid email or password');
@@ -154,7 +151,7 @@ export const authService = {
       throw ApiError.unauthorized('Refresh token replay detected');
     }
 
-    const user = await authRepository.findUserById(session.userId);
+    const user = await usersRepository.findById(session.userId);
 
     if (!user) {
       throw ApiError.unauthorized('User not found');
@@ -190,15 +187,5 @@ export const authService = {
     }
 
     await authRepository.revokeSession(payload.sid);
-  },
-
-  async me(userId: string): Promise<PublicUserDto> {
-    const user = await authRepository.findUserById(userId);
-
-    if (!user) {
-      throw ApiError.notFound('User not found');
-    }
-
-    return toPublicUserDto(user);
   },
 };

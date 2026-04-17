@@ -1,5 +1,6 @@
 import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 import { openApiRegistry } from './openapi-registry';
+import '../modules/users/users.openapi';
 import '../modules/auth/auth.openapi';
 
 const generator = new OpenApiGeneratorV31(openApiRegistry.definitions, {
@@ -22,6 +23,10 @@ export const swaggerSpec = generator.generateDocument({
     {
       name: 'Auth',
       description: 'Authentication and session management endpoints',
+    },
+    {
+      name: 'Users',
+      description: 'User profile endpoints',
     },
   ],
 });
