@@ -35,8 +35,8 @@ export const requireAuth = async (req: AuthenticatedRequest, _res: Response, nex
       return;
     }
 
-    req.user = payload;
-    req.currentUser = user;
+    req.auth = payload;
+    req.user = user;
     next();
   } catch {
     next(ApiError.unauthorized('Invalid or expired access token'));
@@ -46,9 +46,9 @@ export const requireAuth = async (req: AuthenticatedRequest, _res: Response, nex
 export const requireAnyRole = (roles: UserRoles[]) => {
   return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
     try {
-      if (!req.user) return next(ApiError.unauthorized('Missing bearer token'));
+      if (!req.auth) return next(ApiError.unauthorized('Missing bearer token'));
 
-      const user = req.currentUser ?? (await usersRepository.findById(req.user.sub));
+      const user = req.user ?? (await usersRepository.findById(req.auth.sub));
       if (!user) return next(ApiError.unauthorized('User not found'));
       if (user.status !== UserStatuses.ACTIVE) return next(ApiError.forbidden('User is blocked'));
 
