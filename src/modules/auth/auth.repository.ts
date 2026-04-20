@@ -30,7 +30,6 @@ export const authRepository = {
 
   async findSessionById(id: string): Promise<AuthSession | null> {
     const session = await SessionModel.findById(id).lean();
-
     return session ? toAuthSession(session) : null;
   },
 

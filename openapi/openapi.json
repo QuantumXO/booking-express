@@ -116,6 +116,19 @@
             "format": "email",
             "example": "john@example.com"
           },
+          "systemRoles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "contributor",
+                "admin"
+              ]
+            },
+            "example": [
+              "contributor"
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -130,6 +143,7 @@
         "required": [
           "id",
           "email",
+          "systemRoles",
           "createdAt",
           "updatedAt"
         ]

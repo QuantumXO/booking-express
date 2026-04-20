@@ -2,12 +2,15 @@ import { Response, NextFunction } from 'express';
 import { ApiError } from '../utils/api-error';
 import { verifyAccessToken } from '../utils/jwt';
 import type { AuthenticatedRequest } from '../modules/auth/auth.request.types';
+import { usersRepository } from '../modules/users/users.repository';
+import { UserRoles, UserStatuses } from '../modules/users/users.types';
 
-export const requireAuth = (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+export const requireAuth = async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
-    return next(ApiError.unauthorized('Missing bearer token'));
+    next(ApiError.unauthorized('Missing bearer token'));
+    return;
   }
 
   const token = authHeader.slice(7);
@@ -16,12 +19,48 @@ export const requireAuth = (req: AuthenticatedRequest, _res: Response, next: Nex
     const payload = verifyAccessToken(token);
 
     if (payload.type !== 'access') {
-      return next(ApiError.unauthorized('Invalid token type'));
+      next(ApiError.unauthorized('Invalid token type'));
+      return;
+    }
+
+    const user = await usersRepository.findById(payload.sub);
+
+    if (!user) {
+      next(ApiError.unauthorized('User not found'));
+      return;
+    }
+
+    if (user.status !== UserStatuses.ACTIVE) {
+      next(ApiError.forbidden('User is blocked'));
+      return;
     }
 
     req.user = payload;
+    req.currentUser = user;
     next();
   } catch {
     next(ApiError.unauthorized('Invalid or expired access token'));
   }
 };
+
+export const requireAnyRole = (roles: UserRoles[]) => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) return next(ApiError.unauthorized('Missing bearer token'));
+
+      const user = req.currentUser ?? (await usersRepository.findById(req.user.sub));
+      if (!user) return next(ApiError.unauthorized('User not found'));
+      if (user.status !== UserStatuses.ACTIVE) return next(ApiError.forbidden('User is blocked'));
+
+      const hasRole = roles.some((role) => user.roles.includes(role));
+
+      if (!hasRole) return next(ApiError.forbidden('Insufficient permissions'));
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+export const requireAdmin = requireAnyRole([UserRoles.ADMIN]);

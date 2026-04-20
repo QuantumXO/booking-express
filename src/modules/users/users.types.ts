@@ -2,12 +2,26 @@ export type NewUser = {
   id: string;
   email: string;
   password: string;
+  roles?: UserRoles[];
+  status?: UserStatuses;
 };
+
+export enum UserRoles {
+  CONTRIBUTOR = 'contributor',
+  ADMIN = 'admin',
+}
+
+export enum UserStatuses {
+  ACTIVE = 'active',
+  BLOCKED = 'blocked',
+}
 
 export type User = {
   id: string;
   email: string;
   password: string;
+  roles: UserRoles[];
+  status: UserStatuses;
 
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +37,7 @@ export type UserBlockInfo = {
 };
 
 export type UserBlockState = {
+  status: UserStatuses;
   blockedAt: Date | null;
   blockedReason: string | null;
   blockedByUserId: string | null;

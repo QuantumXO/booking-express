@@ -1,7 +1,7 @@
 import { ApiError } from '../../utils/api-error';
 import { PublicUserDto, toPublicUserDto } from './users.dto';
 import { usersRepository } from './users.repository';
-import { User, UserBlockInfo } from './users.types';
+import { UserBlockInfo, UserStatuses } from './users.types';
 
 export const usersService = {
   async me(userId: string): Promise<PublicUserDto> {
@@ -20,6 +20,7 @@ export const usersService = {
     if (user.blockedAt) return;
 
     await usersRepository.updateBlockState(userId, {
+      status: UserStatuses.BLOCKED,
       blockedAt: new Date(),
       blockedReason: blockInfo.reason,
       blockedByUserId: blockInfo.blockedByUserId,
@@ -34,6 +35,7 @@ export const usersService = {
     if (!user.blockedAt) return;
 
     await usersRepository.updateBlockState(userId, {
+      status: UserStatuses.ACTIVE,
       blockedAt: null,
       blockedReason: null,
       blockedByUserId: null,

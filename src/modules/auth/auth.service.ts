@@ -8,7 +8,8 @@ import { authRepository } from './auth.repository';
 import { AccessTokenResponseDto, AuthResponseDto } from './auth.dto';
 import { toPublicUserDto } from '../users/users.dto';
 import { usersRepository } from '../users/users.repository';
-import { NewUser } from '../users/users.types';
+import { NewUser, UserStatuses } from '../users/users.types';
+import { JwtTokenTypes } from '../../utils/jwt/types';
 
 const getRefreshExpiryDate = (): Date => {
   const expiresAt = new Date();
@@ -33,6 +34,7 @@ export const authService = {
       id: crypto.randomUUID(),
       email: body.email,
       password,
+      status: UserStatuses.ACTIVE,
     };
 
     const createdUser = await usersRepository.create(user);
@@ -42,13 +44,13 @@ export const authService = {
     const refreshToken = signRefreshToken({
       sub: user.id,
       sid: sessionId,
-      type: 'refresh',
+      type: JwtTokenTypes.REFRESH,
     });
 
     const accessToken = signAccessToken({
       sub: user.id,
       email: user.email,
-      type: 'access',
+      type: JwtTokenTypes.ACCESS,
     });
 
     const session: AuthSession = {
@@ -81,6 +83,10 @@ export const authService = {
       throw ApiError.unauthorized('Invalid email or password');
     }
 
+    if (user.status !== UserStatuses.ACTIVE) {
+      throw ApiError.forbidden('User is blocked');
+    }
+
     const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
     if (!isPasswordValid) {
@@ -92,13 +98,13 @@ export const authService = {
     const refreshToken = signRefreshToken({
       sub: user.id,
       sid: sessionId,
-      type: 'refresh',
+      type: JwtTokenTypes.REFRESH,
     });
 
     const accessToken = signAccessToken({
       sub: user.id,
       email: user.email,
-      type: 'access',
+      type: JwtTokenTypes.ACCESS,
     });
 
     const session: AuthSession = {
@@ -130,7 +136,7 @@ export const authService = {
       throw ApiError.unauthorized('Invalid or expired refresh token');
     }
 
-    if (payload.type !== 'refresh') {
+    if (payload.type !== JwtTokenTypes.REFRESH) {
       throw ApiError.unauthorized('Invalid token type');
     }
 
@@ -157,16 +163,20 @@ export const authService = {
       throw ApiError.unauthorized('User not found');
     }
 
+    if (user.status !== UserStatuses.ACTIVE) {
+      throw ApiError.forbidden('User is blocked');
+    }
+
     const newRefreshToken = signRefreshToken({
       sub: user.id,
       sid: session.id,
-      type: 'refresh',
+      type: JwtTokenTypes.REFRESH,
     });
 
     const newAccessToken = signAccessToken({
       sub: user.id,
       email: user.email,
-      type: 'access',
+      type: JwtTokenTypes.ACCESS,
     });
 
     await authRepository.rotateSessionRefreshToken(session.id, sha256(newRefreshToken), getRefreshExpiryDate());

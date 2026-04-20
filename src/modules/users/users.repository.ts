@@ -1,10 +1,12 @@
 import { UserDocument, UserModel } from './users.models';
-import { NewUser, UserBlockState, User } from './users.types';
+import { NewUser, UserBlockState, User, UserRoles, UserStatuses } from './users.types';
 
 const toUser = (user: UserDocument): User => ({
   id: user._id,
   email: user.email,
   password: user.password,
+  roles: user.roles ?? [],
+  status: user.status ?? UserStatuses.ACTIVE,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
   blockedAt: user.blockedAt ?? null,
@@ -40,6 +42,8 @@ export const usersRepository = {
       _id: user.id,
       email: user.email,
       password: user.password,
+      roles: user.roles ?? [],
+      status: user.status ?? UserStatuses.ACTIVE,
     });
 
     const createdUser = await UserModel.findById(user.id).lean();
@@ -54,11 +58,20 @@ export const usersRepository = {
       { _id: userId },
       {
         $set: {
+          status: blockInfo.status,
           blockedAt: blockInfo.blockedAt,
           blockedReason: blockInfo.blockedReason,
           blockedByUserId: blockInfo.blockedByUserId,
         },
       },
     );
+  },
+
+  async addRole(userId: string, role: UserRoles): Promise<void> {
+    await UserModel.updateOne({ _id: userId }, { $addToSet: { roles: role } });
+  },
+
+  async removeRole(userId: string, role: UserRoles): Promise<void> {
+    await UserModel.updateOne({ _id: userId }, { $pull: { roles: role } });
   },
 };

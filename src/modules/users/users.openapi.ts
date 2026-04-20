@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { openApiRegistry } from '../../docs/openapi-registry';
+import { UserRoles } from './users.types';
 
 export const PublicUserSchema = openApiRegistry.register(
   'PublicUserDto',
@@ -9,6 +10,9 @@ export const PublicUserSchema = openApiRegistry.register(
     }),
     email: z.string().email().meta({
       example: 'john@example.com',
+    }),
+    roles: z.array(z.enum(Object.values(UserRoles) as [UserRoles, ...UserRoles[]])).meta({
+      example: [UserRoles.CONTRIBUTOR],
     }),
     createdAt: z.iso.datetime().meta({
       example: '2026-04-17T09:30:00.000Z',

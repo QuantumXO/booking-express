@@ -1,10 +1,3 @@
-export type AuthUser = {
-  id: string;
-  email: string;
-  password: string;
-  createdAt: Date;
-};
-
 export type AuthSession = {
   id: string;
   userId: string;

@@ -5,6 +5,8 @@ export const env = {
   mongodbUri: process.env.MONGODB_URI ?? '',
   mongodbDbName: process.env.MONGODB_DB_NAME ?? 'booking_express',
   httpLogsEnabled: process.env.HTTP_LOGS_ENABLED === 'true',
+  defaultAdminEmail: process.env.DEFAULT_ADMIN_EMAIL ?? '',
+  defaultAdminPassword: process.env.DEFAULT_ADMIN_PASSWORD ?? '',
 
   // JWT
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? 'access-secret-dev',
