@@ -1,7 +1,8 @@
 import { ApiError } from '../../utils/api-error';
 import { PublicUserDto, toPublicUserDto } from './users.dto';
 import { usersRepository } from './users.repository';
-import { UserBlockInfo, UserStatuses } from './users.types';
+import { User, UserBlockInfo, UserRoles, UserStatuses } from './users.types';
+import { authRepository } from '../auth/auth.repository';
 
 export const usersService = {
   async me(userId: string): Promise<PublicUserDto> {
@@ -11,7 +12,6 @@ export const usersService = {
 
     return toPublicUserDto(user);
   },
-
   async blockUser(userId: string, blockInfo: UserBlockInfo): Promise<void> {
     const user = await usersRepository.findById(userId);
 
@@ -26,7 +26,6 @@ export const usersService = {
       blockedByUserId: blockInfo.blockedByUserId,
     });
   },
-
   async unblockUser(userId: string): Promise<void> {
     const user = await usersRepository.findById(userId);
 
@@ -40,5 +39,17 @@ export const usersService = {
       blockedReason: null,
       blockedByUserId: null,
     });
+  },
+  async deleteUser(actor: User, targetUserId: string): Promise<void> {
+    const targetUser: User | null = await usersRepository.findById(targetUserId);
+    if (!targetUser) throw ApiError.notFound('User not found');
+
+    if (targetUser.roles.includes(UserRoles.ADMIN)) throw ApiError.forbidden("You can't delete admin");
+
+    const isActorAdmin: boolean = actor.roles.includes(UserRoles.ADMIN);
+
+    if (!isActorAdmin && actor.id !== targetUserId) throw ApiError.forbidden("You can't delete another user");
+
+    await Promise.all([usersRepository.deleteUser(targetUserId), authRepository.revokeAllUserSessions(targetUserId)]);
   },
 };

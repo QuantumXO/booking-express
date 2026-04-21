@@ -17,16 +17,12 @@ const toUser = (user: UserDocument): User => ({
 export const usersRepository = {
   async findByEmail(email: string): Promise<User | null> {
     const user = await UserModel.findOne({ email }).lean();
-
     return user ? toUser(user) : null;
   },
-
   async findById(id: string): Promise<User | null> {
     const user = await UserModel.findById(id).lean();
-
     return user ? toUser(user) : null;
   },
-
   async findByIds(ids: string[]): Promise<User[]> {
     if (ids.length === 0) {
       return [];
@@ -36,7 +32,6 @@ export const usersRepository = {
 
     return users.map(toUser);
   },
-
   async create(user: NewUser): Promise<User> {
     await UserModel.create({
       _id: user.id,
@@ -52,7 +47,6 @@ export const usersRepository = {
 
     return toUser(createdUser);
   },
-
   async updateBlockState(userId: string, blockInfo: UserBlockState): Promise<void> {
     await UserModel.updateOne(
       { _id: userId },
@@ -66,12 +60,17 @@ export const usersRepository = {
       },
     );
   },
-
   async addRole(userId: string, role: UserRoles): Promise<void> {
     await UserModel.updateOne({ _id: userId }, { $addToSet: { roles: role } });
   },
-
   async removeRole(userId: string, role: UserRoles): Promise<void> {
     await UserModel.updateOne({ _id: userId }, { $pull: { roles: role } });
+  },
+  async deleteUser(userId: string): Promise<void> {
+    await UserModel.deleteOne({ _id: userId });
+  },
+  async findByIdAndRole(userId: string, role: UserRoles): Promise<User | null> {
+    const user = await UserModel.findOne({ _id: userId, roles: role }).lean();
+    return user ? toUser(user) : null;
   },
 };

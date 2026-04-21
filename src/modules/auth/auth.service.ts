@@ -24,9 +24,7 @@ export const authService = {
   ): Promise<AuthResponseDto & { refreshToken: string }> {
     const existingUser = await usersRepository.findByEmail(body.email);
 
-    if (existingUser) {
-      throw ApiError.conflict('User with this email already exists');
-    }
+    if (existingUser) throw ApiError.conflict('User with this email already exists');
 
     const password = await bcrypt.hash(body.password, 12);
 

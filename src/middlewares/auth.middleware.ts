@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { NextFunction, Response } from 'express';
 import { ApiError } from '../utils/api-error';
 import { verifyAccessToken } from '../utils/jwt';
 import type { AuthenticatedRequest } from '../modules/auth/auth.request.types';
@@ -64,3 +64,4 @@ export const requireAnyRole = (roles: UserRoles[]) => {
 };
 
 export const requireAdmin = requireAnyRole([UserRoles.ADMIN]);
+export const requireSystemRole = requireAnyRole([UserRoles.ADMIN, UserRoles.CONTRACTOR]);

@@ -12,7 +12,7 @@ export const PublicUserSchema = openApiRegistry.register(
       example: 'john@example.com',
     }),
     roles: z.array(z.enum(Object.values(UserRoles) as [UserRoles, ...UserRoles[]])).meta({
-      example: [UserRoles.CONTRIBUTOR],
+      example: [UserRoles.CONTRACTOR],
     }),
     createdAt: z.iso.datetime().meta({
       example: '2026-04-17T09:30:00.000Z',

@@ -8,11 +8,10 @@ const slotSchema = new Schema(
     price: { type: Number, required: false },
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
-    createdAt: { type: Date, required: true },
-    updatedAt: { type: Date, required: false },
   },
   {
     versionKey: false,
+    timestamps: true,
   },
 );
 

@@ -2,6 +2,7 @@ import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 import { openApiRegistry } from './openapi-registry';
 import '../modules/users/users.openapi';
 import '../modules/auth/auth.openapi';
+import '../modules/slots/slots.openapi';
 
 const generator = new OpenApiGeneratorV31(openApiRegistry.definitions, {
   sortComponents: 'alphabetically',
@@ -27,6 +28,10 @@ export const swaggerSpec = generator.generateDocument({
     {
       name: 'Users',
       description: 'User profile endpoints',
+    },
+    {
+      name: 'Slots',
+      description: 'Slot management endpoints',
     },
   ],
 });

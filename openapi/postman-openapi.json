@@ -18,6 +18,10 @@
     {
       "name": "Users",
       "description": "User profile endpoints"
+    },
+    {
+      "name": "Slots",
+      "description": "Slot management endpoints"
     }
   ],
   "components": {
@@ -60,6 +64,50 @@
         "required": [
           "user",
           "accessToken"
+        ]
+      },
+      "CreateSlotDto": {
+        "type": "object",
+        "properties": {
+          "contractorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "startAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "contractorId",
+          "startAt",
+          "endAt"
+        ],
+        "additionalProperties": false
+      },
+      "CreateSlotResponse": {
+        "type": "object",
+        "properties": {
+          "slot": {
+            "$ref": "#/components/schemas/Slot"
+          }
+        },
+        "required": [
+          "slot"
         ]
       },
       "ErrorResponse": {
@@ -116,17 +164,17 @@
             "format": "email",
             "example": "john@example.com"
           },
-          "systemRoles": {
+          "roles": {
             "type": "array",
             "items": {
               "type": "string",
               "enum": [
-                "contributor",
+                "contractor",
                 "admin"
               ]
             },
             "example": [
-              "contributor"
+              "contractor"
             ]
           },
           "createdAt": {
@@ -143,7 +191,7 @@
         "required": [
           "id",
           "email",
-          "systemRoles",
+          "roles",
           "createdAt",
           "updatedAt"
         ]
@@ -170,6 +218,129 @@
           "password"
         ],
         "additionalProperties": false
+      },
+      "Slot": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "cc995c90-d4c5-4131-8e5a-ea79a18cf6c3"
+          },
+          "contractorId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "0f7fd8de-b2c3-4cc9-9a2a-f09f1d3ef2ef"
+          },
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "example": 500
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-22T10:00:00.000Z"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-22T11:00:00.000Z"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-21T09:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-21T09:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "contractorId",
+          "startAt",
+          "endAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SlotDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "cc995c90-d4c5-4131-8e5a-ea79a18cf6c3"
+          },
+          "contractor": {
+            "$ref": "#/components/schemas/PublicUserDto"
+          },
+          "booked": {
+            "type": "boolean",
+            "example": false
+          },
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "example": 500
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-22T10:00:00.000Z"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-22T11:00:00.000Z"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-21T09:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-04-21T09:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "contractor",
+          "startAt",
+          "endAt",
+          "createdAt"
+        ]
+      },
+      "SlotListResponse": {
+        "type": "object",
+        "properties": {
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SlotDto"
+            }
+          }
+        },
+        "required": [
+          "slots"
+        ]
+      },
+      "SlotsErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Slot not found"
+          }
+        },
+        "required": [
+          "message"
+        ]
       },
       "UsersErrorResponse": {
         "type": "object",
@@ -383,6 +554,95 @@
             "required": false,
             "name": "refreshToken",
             "in": "cookie"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/slots": {
+      "get": {
+        "tags": [
+          "Slots"
+        ],
+        "operationId": "getSlots",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlotListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Slots"
+        ],
+        "operationId": "createSlot",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSlotDto"
+              },
+              "example": {
+                "contractorId": "0f7fd8de-b2c3-4cc9-9a2a-f09f1d3ef2ef",
+                "price": 500,
+                "startAt": "2026-04-22T10:00:00.000Z",
+                "endAt": "2026-04-22T11:00:00.000Z"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSlotResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slots/{slotId}": {
+      "delete": {
+        "tags": [
+          "Slots"
+        ],
+        "operationId": "deleteSlot",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "cc995c90-d4c5-4131-8e5a-ea79a18cf6c3"
+            }
           }
         ],
         "responses": {

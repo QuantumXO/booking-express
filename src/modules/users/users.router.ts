@@ -7,6 +7,7 @@ import { blockUserSchema } from './users.validation';
 export const router = Router();
 
 router.get('/me', requireAuth, usersController.me);
+router.delete('/:userId', requireAuth, usersController.deleteUser);
 
 // For admin
 router.patch('/:userId/block', requireAuth, requireAdmin, validateBody(blockUserSchema), usersController.blockUser);

@@ -7,7 +7,7 @@ export type NewUser = {
 };
 
 export enum UserRoles {
-  CONTRIBUTOR = 'contributor',
+  CONTRACTOR = 'contractor',
   ADMIN = 'admin',
 }
 
