@@ -64,4 +64,5 @@ export const requireAnyRole = (roles: UserRoles[]) => {
 };
 
 export const requireAdmin = requireAnyRole([UserRoles.ADMIN]);
+export const requireContractor = requireAnyRole([UserRoles.CONTRACTOR]);
 export const requireSystemRole = requireAnyRole([UserRoles.ADMIN, UserRoles.CONTRACTOR]);

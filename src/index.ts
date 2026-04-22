@@ -4,6 +4,10 @@ import { env } from './config/env';
 import { closeMongo, connectMongo } from './config/mongodb';
 import { logger } from './utils/logger';
 
+const REQUEST_TIMEOUT = 15_000;
+const HEADERS_TIMEOUT = 10_000;
+const KEEP_ALIVE_TIMEOUT = 5_000;
+
 function logFatalAndExit(error: unknown, message: string): never {
   logger.fatal({ err: error }, message);
   process.exit(1);
@@ -26,6 +30,10 @@ async function bootstrap(): Promise<void> {
     const server = app.listen(env.port, () => {
       console.log(`Server running on http://localhost:${env.port}`);
     });
+
+    server.requestTimeout = REQUEST_TIMEOUT;
+    server.headersTimeout = HEADERS_TIMEOUT;
+    server.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
 
     const shutdown = async () => {
       logger.info('Shutdown signal received');

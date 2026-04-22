@@ -66,6 +66,20 @@
           "accessToken"
         ]
       },
+      "ContractorSlotListResponse": {
+        "type": "object",
+        "properties": {
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SlotDto"
+            }
+          }
+        },
+        "required": [
+          "slots"
+        ]
+      },
       "CreateSlotDto": {
         "type": "object",
         "properties": {
@@ -128,6 +142,29 @@
           "message"
         ]
       },
+      "GetSlotsQueryDto": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "string",
+            "enum": [
+              "true",
+              "false"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "default": 20
+          },
+          "page": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "default": 1
+          }
+        }
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -150,6 +187,59 @@
           "password"
         ],
         "additionalProperties": false
+      },
+      "PaginatedContractorSlotListResponse": {
+        "type": "object",
+        "properties": {
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SlotDto"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/SlotsPaginationDto"
+          }
+        },
+        "required": [
+          "slots",
+          "pagination"
+        ]
+      },
+      "PatchSlotDto": {
+        "type": "object",
+        "properties": {
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "startAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PatchSlotResponse": {
+        "type": "object",
+        "properties": {
+          "slot": {
+            "$ref": "#/components/schemas/SlotDto"
+          }
+        },
+        "required": [
+          "slot"
+        ]
       },
       "PublicUserDto": {
         "type": "object",
@@ -275,9 +365,6 @@
             "format": "uuid",
             "example": "cc995c90-d4c5-4131-8e5a-ea79a18cf6c3"
           },
-          "contractor": {
-            "$ref": "#/components/schemas/PublicUserDto"
-          },
           "booked": {
             "type": "boolean",
             "example": false
@@ -310,7 +397,6 @@
         },
         "required": [
           "id",
-          "contractor",
           "startAt",
           "endAt",
           "createdAt"
@@ -322,12 +408,16 @@
           "slots": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SlotDto"
+              "$ref": "#/components/schemas/SlotWithContractorDto"
             }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/SlotsPaginationDto"
           }
         },
         "required": [
-          "slots"
+          "slots",
+          "pagination"
         ]
       },
       "SlotsErrorResponse": {
@@ -340,6 +430,55 @@
         },
         "required": [
           "message"
+        ]
+      },
+      "SlotsPaginationDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "example": 20
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 47
+          },
+          "pages": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 3
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "pages"
+        ]
+      },
+      "SlotWithContractorDto": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SlotDto"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "contractor": {
+                "$ref": "#/components/schemas/PublicUserDto"
+              }
+            },
+            "required": [
+              "contractor"
+            ]
+          }
         ]
       },
       "UsersErrorResponse": {
@@ -569,6 +708,41 @@
           "Slots"
         ],
         "operationId": "getSlots",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "active",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -622,6 +796,96 @@
         }
       }
     },
+    "/slots/my": {
+      "get": {
+        "tags": [
+          "Slots"
+        ],
+        "operationId": "getContractorSlots",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractorSlotListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slots/{contractorId}": {
+      "get": {
+        "tags": [
+          "Slots"
+        ],
+        "operationId": "getSlotsByContractorId",
+        "parameters": [
+          {
+            "name": "contractorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "0f7fd8de-b2c3-4cc9-9a2a-f09f1d3ef2ef"
+            }
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "active",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedContractorSlotListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/slots/{slotId}": {
       "delete": {
         "tags": [
@@ -648,6 +912,56 @@
         "responses": {
           "204": {
             "description": ""
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Slots"
+        ],
+        "operationId": "patchSlot",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "cc995c90-d4c5-4131-8e5a-ea79a18cf6c3"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchSlotDto"
+              },
+              "example": {
+                "price": 700,
+                "startAt": "2026-04-22T12:00:00.000Z",
+                "endAt": "2026-04-22T13:00:00.000Z"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatchSlotResponse"
+                }
+              }
+            }
           }
         }
       }

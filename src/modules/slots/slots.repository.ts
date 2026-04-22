@@ -1,5 +1,5 @@
 import { SlotDocument, SlotModel } from './slots.models';
-import { NewSlot, Slot } from './slots.types';
+import { FindSlotsParams, FindSlotsResult, NewSlot, Slot } from './slots.types';
 
 const toSlot = (slot: SlotDocument): Slot => ({
   id: slot._id,
@@ -12,8 +12,30 @@ const toSlot = (slot: SlotDocument): Slot => ({
 });
 
 export const slotsRepository = {
-  async getSlots(): Promise<SlotDocument[]> {
-    return SlotModel.find().lean();
+  async findMany(params: FindSlotsParams): Promise<FindSlotsResult> {
+    const query: Record<string, unknown> = {};
+
+    if (params.contractorId) {
+      query.contractorId = params.contractorId;
+    }
+
+    if (params.active === true) {
+      query.endAt = { $gt: new Date() };
+    }
+
+    if (params.active === false) {
+      query.endAt = { $lte: new Date() };
+    }
+
+    const [slotDocuments, total] = await Promise.all([
+      SlotModel.find(query).sort({ startAt: 1 }).skip(params.skip).limit(params.limit).lean(),
+      SlotModel.countDocuments(query),
+    ]);
+
+    return {
+      slots: slotDocuments,
+      total,
+    };
   },
   async findById(slotId: string): Promise<SlotDocument | null> {
     return SlotModel.findById(slotId).lean();
@@ -36,14 +58,27 @@ export const slotsRepository = {
     contractorId: string;
     startAt: Date;
     endAt: Date;
+    excludeSlotId?: string;
   }): Promise<SlotDocument | null> {
-    return SlotModel.findOne({
+    const query: Record<string, unknown> = {
       contractorId: params.contractorId,
       startAt: { $lt: params.endAt },
       endAt: { $gt: params.startAt },
-    }).lean();
+    };
+
+    if (params.excludeSlotId) {
+      query._id = { $ne: params.excludeSlotId };
+    }
+
+    return SlotModel.findOne(query).lean();
   },
   async deleteSlot(slotId: string): Promise<void> {
     await SlotModel.deleteOne({ _id: slotId });
+  },
+  async findByContractorId(contractorId: string): Promise<SlotDocument[] | null> {
+    return SlotModel.find({ contractorId }).lean();
+  },
+  async patchSlot(slotId: string, updates: { price?: number; startAt?: Date; endAt?: Date }): Promise<SlotDocument | null> {
+    return SlotModel.findByIdAndUpdate(slotId, { $set: updates }, { new: true }).lean();
   },
 };

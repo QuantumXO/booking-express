@@ -13,10 +13,10 @@ export const usersController = {
     const user: PublicUserDto = await usersService.me(auth.sub);
     res.status(200).json(user);
   },
-  async blockUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async blockUser(req: AuthenticatedRequest<{ userId: string }>, res: Response): Promise<void> {
     const auth = getAuth(req);
     const body = req.body as BlockUserDto;
-    const targetUserId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+    const targetUserId: string = req.params.userId;
 
     await usersService.blockUser(targetUserId, {
       blockedByUserId: auth.sub,
@@ -25,14 +25,14 @@ export const usersController = {
 
     res.status(204).send();
   },
-  async unblockUser(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const targetUserId: string = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+  async unblockUser(req: AuthenticatedRequest<{ userId: string }>, res: Response): Promise<void> {
+    const targetUserId: string = req.params.userId;
     await usersService.unblockUser(targetUserId);
     res.status(204).send();
   },
-  async deleteUser(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async deleteUser(req: AuthenticatedRequest<{ userId: string }>, res: Response): Promise<void> {
     const actor: User = getUser(req);
-    const targetUserId: string = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+    const targetUserId: string = req.params.userId;
     await usersService.deleteUser(actor, targetUserId);
     res.status(204).send();
   },

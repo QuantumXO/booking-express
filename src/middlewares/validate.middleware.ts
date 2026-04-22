@@ -15,3 +15,16 @@ export const validateBody =
     req.body = result.data;
     next();
   };
+
+export const validateQuery =
+  <T extends ZodType>(schema: T) =>
+  (req: Request, _res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.query);
+
+    if (!result.success) {
+      return next(ApiError.badRequest('Validation failed', formatZodError(result.error)));
+    }
+
+    (req as Request<any, any, any, any>).query = result.data;
+    next();
+  };
