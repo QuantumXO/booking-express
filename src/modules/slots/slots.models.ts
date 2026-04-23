@@ -1,4 +1,4 @@
-import { InferSchemaType, model, models, Schema } from 'mongoose';
+import { HydratedDocument, InferSchemaType, Model, model, models, Schema } from 'mongoose';
 
 const slotSchema = new Schema(
   {
@@ -15,6 +15,8 @@ const slotSchema = new Schema(
   },
 );
 
-export type SlotDocument = InferSchemaType<typeof slotSchema>;
+export type Slot = InferSchemaType<typeof slotSchema>;
+export type SlotDocument = HydratedDocument<Slot>;
 
-export const SlotModel = models.Slot || model<SlotDocument>('Slot', slotSchema, 'slots');
+export const SlotModel =
+  (models.Slot as Model<Slot> | undefined) ?? model<Slot>('Slot', slotSchema, 'slots');

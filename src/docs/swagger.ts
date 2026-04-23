@@ -3,6 +3,7 @@ import { openApiRegistry } from './openapi-registry';
 import '../modules/users/users.openapi';
 import '../modules/auth/auth.openapi';
 import '../modules/slots/slots.openapi';
+import '../modules/booking/booking.openapi';
 
 const generator = new OpenApiGeneratorV31(openApiRegistry.definitions, {
   sortComponents: 'alphabetically',
@@ -32,6 +33,10 @@ export const swaggerSpec = generator.generateDocument({
     {
       name: 'Slots',
       description: 'Slot management endpoints',
+    },
+    {
+      name: 'Bookings',
+      description: 'Booking management endpoints',
     },
   ],
 });

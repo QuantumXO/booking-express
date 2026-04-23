@@ -1,7 +1,7 @@
-import { SlotDocument } from './slots.models';
+import { Slot } from './slots.models';
 import { PublicUserDto } from '../users/users.dto';
 
-export type SlotDto = Omit<SlotDocument, '_id' | 'contractorId'> & {
+export type SlotDto = Omit<Slot, '_id' | 'contractorId'> & {
   id: string;
 };
 
@@ -26,7 +26,7 @@ export type ContractorSlotListDto = {
   pagination: SlotsPaginationDto;
 };
 
-export const toSlotDto = (slot: SlotDocument): SlotDto => ({
+export const toSlotDto = (slot: Slot): SlotDto => ({
   booked: slot.booked ?? undefined,
   createdAt: slot.createdAt,
   endAt: slot.endAt,
@@ -37,7 +37,7 @@ export const toSlotDto = (slot: SlotDocument): SlotDto => ({
 });
 
 export const toSlotWithContractorDto = (
-  slot: SlotDocument,
+  slot: Slot,
   contractor: PublicUserDto,
 ): SlotWithContractorDto => ({
   ...toSlotDto(slot),

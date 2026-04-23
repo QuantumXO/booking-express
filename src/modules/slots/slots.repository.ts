@@ -1,15 +1,6 @@
-import { SlotDocument, SlotModel } from './slots.models';
-import { FindSlotsParams, FindSlotsResult, NewSlot, Slot } from './slots.types';
-
-const toSlot = (slot: SlotDocument): Slot => ({
-  id: slot._id,
-  contractorId: slot.contractorId,
-  price: slot.price ?? undefined,
-  startAt: slot.startAt,
-  endAt: slot.endAt,
-  createdAt: slot.createdAt,
-  updatedAt: slot.updatedAt,
-});
+import { ClientSession } from 'mongoose';
+import { Slot, SlotModel } from './slots.models';
+import { FindSlotsParams, FindSlotsResult, NewSlot } from './slots.types';
 
 export const slotsRepository = {
   async findMany(params: FindSlotsParams): Promise<FindSlotsResult> {
@@ -37,8 +28,8 @@ export const slotsRepository = {
       total,
     };
   },
-  async findById(slotId: string): Promise<SlotDocument | null> {
-    return SlotModel.findById(slotId).lean();
+  async findById(slotId: string, session?: ClientSession): Promise<Slot | null> {
+    return SlotModel.findById(slotId).session(session ?? null).lean();
   },
   async create(newSlot: NewSlot): Promise<Slot> {
     await SlotModel.create({
@@ -49,17 +40,17 @@ export const slotsRepository = {
       endAt: newSlot.endAt,
     });
 
-    const createdSlot: SlotDocument | null = await slotsRepository.findById(newSlot.id);
+    const createdSlot: Slot | null = await slotsRepository.findById(newSlot.id);
     if (!createdSlot) throw new Error(`Failed to create slot ${newSlot.id}`);
 
-    return toSlot(createdSlot);
+    return createdSlot;
   },
   async findOverlappingSlot(params: {
     contractorId: string;
     startAt: Date;
     endAt: Date;
     excludeSlotId?: string;
-  }): Promise<SlotDocument | null> {
+  }): Promise<Slot | null> {
     const query: Record<string, unknown> = {
       contractorId: params.contractorId,
       startAt: { $lt: params.endAt },
@@ -75,10 +66,26 @@ export const slotsRepository = {
   async deleteSlot(slotId: string): Promise<void> {
     await SlotModel.deleteOne({ _id: slotId });
   },
-  async findByContractorId(contractorId: string): Promise<SlotDocument[] | null> {
+  async findByContractorId(contractorId: string): Promise<Slot[] | null> {
     return SlotModel.find({ contractorId }).lean();
   },
-  async patchSlot(slotId: string, updates: { price?: number; startAt?: Date; endAt?: Date }): Promise<SlotDocument | null> {
+  async patchSlot(
+    slotId: string,
+    updates: { price?: number; startAt?: Date; endAt?: Date; booked?: boolean },
+  ): Promise<Slot | null> {
     return SlotModel.findByIdAndUpdate(slotId, { $set: updates }, { new: true }).lean();
+  },
+  async bookSlot(slotId: string, session?: ClientSession): Promise<Slot | null> {
+    return SlotModel.findOneAndUpdate(
+      {
+        _id: slotId,
+        booked: { $ne: true },
+        startAt: { $gt: new Date() },
+      },
+      {
+        $set: { booked: true },
+      },
+      { new: true, session },
+    ).lean();
   },
 };

@@ -8,14 +8,12 @@ const router = Router();
 
 // Public
 router.get('/', validateQuery(getSlotsQuerySchema), slotsController.getSlots);
+router.get('/:contractorId', validateQuery(getSlotsQuerySchema), slotsController.getSlotsByContractorId);
 
 // Private
-router.get('/my', requireAuth, requireContractor, slotsController.getContractorSlots);
 router.post('/', requireAuth, requireSystemRole, validateBody(createSlotSchema), slotsController.createSlot);
+router.get('/my', requireAuth, requireContractor, slotsController.getContractorSlots);
 router.delete('/:slotId', requireAuth, requireSystemRole, slotsController.deleteSlot);
 router.patch('/:slotId', requireAuth, requireSystemRole, validateBody(patchSlotSchema), slotsController.patchSlot);
-
-// Public
-router.get('/:contractorId', validateQuery(getSlotsQuerySchema), slotsController.getSlotsByContractorId);
 
 export { router as slotsRouter };

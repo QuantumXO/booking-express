@@ -1,4 +1,4 @@
-import { SlotDocument } from './slots.models';
+import { Slot } from './slots.models';
 
 export type NewSlot = {
   id: string;
@@ -15,16 +15,6 @@ export type SlotFilters = {
   page: number;
 };
 
-export type Slot = {
-  id: string;
-  contractorId: string;
-  price: number | undefined;
-  startAt: Date;
-  endAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
 export type FindSlotsParams = {
   contractorId?: string;
   active?: boolean;
@@ -33,6 +23,6 @@ export type FindSlotsParams = {
 };
 
 export type FindSlotsResult = {
-  slots: SlotDocument[];
+  slots: Slot[];
   total: number;
 };

@@ -7,12 +7,12 @@ import {
   toSlotDto,
   toSlotWithContractorDto,
 } from './slots.dto';
-import { SlotDocument } from './slots.models';
+import { Slot } from './slots.models';
 import { usersRepository } from '../users/users.repository';
 import { ApiError } from '../../utils/api-error';
 import { PublicUserDto, toPublicUserDto } from '../users/users.dto';
 import { CreateSlotDto, PatchSlotDto } from './slots.validation';
-import { FindSlotsParams, FindSlotsResult, NewSlot, Slot, SlotFilters } from './slots.types';
+import { FindSlotsParams, FindSlotsResult, NewSlot, SlotFilters } from './slots.types';
 import { User, UserRoles } from '../users/users.types';
 
 export const slotsService = {
@@ -27,13 +27,13 @@ export const slotsService = {
     };
 
     const result: FindSlotsResult = await slotsRepository.findMany(params);
-    const contractorIds = [...new Set(result.slots.map((slot: SlotDocument) => slot.contractorId))];
+    const contractorIds = [...new Set(result.slots.map((slot: Slot) => slot.contractorId))];
     const contractors = await usersRepository.findByIds(contractorIds);
     const contractorsById = new Map(
       contractors.map((contractor): [string, PublicUserDto] => [contractor.id, toPublicUserDto(contractor)]),
     );
 
-    const slots: SlotWithContractorDto[] = result.slots.map((slot: SlotDocument): SlotWithContractorDto => {
+    const slots: SlotWithContractorDto[] = result.slots.map((slot: Slot): SlotWithContractorDto => {
       const contractor: PublicUserDto | undefined = contractorsById.get(slot.contractorId);
       if (!contractor) throw ApiError.notFound(`Contractor not found for slot ${slot._id}`);
       return toSlotWithContractorDto(slot, contractor);
@@ -60,7 +60,7 @@ export const slotsService = {
     };
 
     const result: FindSlotsResult = await slotsRepository.findMany(params);
-    const slots: SlotDto[] = result.slots.map((slot: SlotDocument): SlotDto => toSlotDto(slot));
+    const slots: SlotDto[] = result.slots.map((slot: Slot): SlotDto => toSlotDto(slot));
 
     return {
       slots,
@@ -101,7 +101,7 @@ export const slotsService = {
     return slotsRepository.create(slot);
   },
   async deleteSlot(actor: User, slotId: string): Promise<void> {
-    const slot: SlotDocument | null = await slotsRepository.findById(slotId);
+    const slot: Slot | null = await slotsRepository.findById(slotId);
     if (!slot) throw ApiError.notFound('Slot not found');
     if (slot.booked) throw ApiError.conflict('You cannot delete booked slot');
 
@@ -114,12 +114,12 @@ export const slotsService = {
     await slotsRepository.deleteSlot(slotId);
   },
   async getContractorSlots(contractorId: string): Promise<SlotDto[]> {
-    const slots: SlotDocument[] | null = await slotsRepository.findByContractorId(contractorId);
+    const slots: Slot[] | null = await slotsRepository.findByContractorId(contractorId);
     if (!slots) return [];
     return slots.map((slot): SlotDto => toSlotDto(slot));
   },
   async patchSlot(actor: User, slotId: string, body: PatchSlotDto): Promise<SlotDto> {
-    const slot: SlotDocument | null = await slotsRepository.findById(slotId);
+    const slot: Slot | null = await slotsRepository.findById(slotId);
     if (!slot) throw ApiError.notFound('Slot not found');
     if (slot.booked) throw ApiError.conflict('You cannot update booked slot');
 
@@ -145,7 +145,7 @@ export const slotsService = {
 
     if (conflictingSlot) throw ApiError.conflict('There is already a slot in this time range');
 
-    const patchedSlot: SlotDocument | null = await slotsRepository.patchSlot(slotId, {
+    const patchedSlot: Slot | null = await slotsRepository.patchSlot(slotId, {
       price: body.price,
       startAt: body.startAt,
       endAt: body.endAt,

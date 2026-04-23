@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { slotsService } from './slots.service';
 import { ContractorSlotListDto, SlotDto, SlotListDto } from './slots.dto';
-import { Slot } from './slots.types';
 import { User } from '../users/users.types';
 import { getUser } from '../users/users.helpers';
 import type { AuthenticatedRequest } from '../auth/auth.request.types';
 import { GetSlotsQueryDto, PatchSlotDto } from './slots.validation';
+import { Slot } from './slots.models';
 
 export const slotsController = {
   async getSlots(req: Request, res: Response): Promise<void> {
