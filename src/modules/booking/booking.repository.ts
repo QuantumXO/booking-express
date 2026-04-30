@@ -1,5 +1,5 @@
 import { ClientSession } from 'mongoose';
-import { NewBooking } from './booking.types';
+import { BookingStatuses, NewBooking } from './booking.types';
 import { Booking, BookingModel } from './booking.models';
 
 export const bookingRepository = {
@@ -28,5 +28,8 @@ export const bookingRepository = {
   },
   async findByContractorId(contractorId: string): Promise<Booking[]> {
     return BookingModel.find({ contractorId }).lean();
+  },
+  async patchStatus(bookingId: string, status: BookingStatuses, session: ClientSession): Promise<Booking | null> {
+    return BookingModel.findByIdAndUpdate(bookingId, { $set: { status } }, { new: true, session }).lean();
   },
 };

@@ -29,7 +29,9 @@ export const slotsRepository = {
     };
   },
   async findById(slotId: string, session?: ClientSession): Promise<Slot | null> {
-    return SlotModel.findById(slotId).session(session ?? null).lean();
+    return SlotModel.findById(slotId)
+      .session(session ?? null)
+      .lean();
   },
   async create(newSlot: NewSlot): Promise<Slot> {
     await SlotModel.create({
@@ -72,8 +74,9 @@ export const slotsRepository = {
   async patchSlot(
     slotId: string,
     updates: { price?: number; startAt?: Date; endAt?: Date; booked?: boolean },
+    session?: ClientSession,
   ): Promise<Slot | null> {
-    return SlotModel.findByIdAndUpdate(slotId, { $set: updates }, { new: true }).lean();
+    return SlotModel.findByIdAndUpdate(slotId, { $set: updates }, { new: true, session }).lean();
   },
   async bookSlot(slotId: string, session?: ClientSession): Promise<Slot | null> {
     return SlotModel.findOneAndUpdate(

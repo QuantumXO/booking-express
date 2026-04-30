@@ -23,4 +23,10 @@ export const bookingController = {
     const bookings: BookingDto[] = await bookingService.getContractorBookings(actor);
     res.status(200).json({ bookings });
   },
+  async cancelBooking(req: AuthenticatedRequest<{ bookingId: string }>, res: Response): Promise<void> {
+    const actor: User = getUser(req);
+    const bookingId: string = req.params.bookingId;
+    const booking: BookingDto = await bookingService.cancelBooking(actor, bookingId);
+    res.status(200).json({ booking });
+  },
 };

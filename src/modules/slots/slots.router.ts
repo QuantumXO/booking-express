@@ -1,14 +1,23 @@
 import { Router } from 'express';
+import { ParamsDictionary } from 'express-serve-static-core';
 import { slotsController } from './slots.controller';
 import { requireAuth, requireContractor, requireSystemRole } from '../../middlewares/auth.middleware';
 import { validateBody, validateQuery } from '../../middlewares/validate.middleware';
-import { createSlotSchema, getSlotsQuerySchema, patchSlotSchema } from './slots.validation';
+import { createSlotSchema, GetSlotsQueryDto, getSlotsQuerySchema, patchSlotSchema } from './slots.validation';
 
 const router = Router();
 
 // Public
-router.get('/', validateQuery(getSlotsQuerySchema), slotsController.getSlots);
-router.get('/:contractorId', validateQuery(getSlotsQuerySchema), slotsController.getSlotsByContractorId);
+router.get<ParamsDictionary, unknown, unknown, GetSlotsQueryDto>(
+  '/',
+  validateQuery(getSlotsQuerySchema),
+  slotsController.getSlots,
+);
+router.get<{ contractorId: string }, unknown, unknown, GetSlotsQueryDto>(
+  '/:contractorId',
+  validateQuery(getSlotsQuerySchema),
+  slotsController.getSlotsByContractorId,
+);
 
 // Private
 router.post('/', requireAuth, requireSystemRole, validateBody(createSlotSchema), slotsController.createSlot);

@@ -7,9 +7,15 @@ import { logger } from './utils/logger';
 import { env } from './config/env';
 import { rateLimitMiddleware } from './middlewares/rate-limit.middleware';
 import { registerRoutes } from './routes';
+import { requestSizeMiddleware } from './middlewares/request-size.middleware';
 
 export function createApp(): Express {
   const app: Express = express();
+
+  // Use the simple query parser to keep query params flat and predictable.
+  app.set('query parser', 'simple');
+
+  app.use(requestSizeMiddleware);
 
   app.use(
     pinoHttp({
